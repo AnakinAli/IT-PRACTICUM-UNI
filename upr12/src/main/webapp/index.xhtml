@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Офиси</title>
+    <meta charset="UTF-8"/>
+    <h:outputStylesheet library="css" name="style.css"/>
+</h:head>
+<h:body>
+<main class="container">
+    <h1>Офиси</h1>
+    <h:messages globalOnly="true" infoClass="message" errorClass="error"/>
+
+    <section class="card">
+        <h2>Офиси по град</h2>
+        <h:form>
+            <h:outputLabel for="city" value="Град"/>
+            <h:selectOneMenu id="city" value="#{order.city}" required="true" requiredMessage="Изберете град.">
+                <f:selectItem itemLabel="-- изберете --" itemValue="#{null}" noSelectionOption="true"/>
+                <f:selectItems value="#{order.cities}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+            </h:selectOneMenu>
+            <h:commandButton value="Покажи" action="#{order.filterAddresses}"/>
+
+            <h:dataTable value="#{order.addresses}" var="address" styleClass="addresses"
+                         rendered="#{not empty order.addresses}">
+                <h:column>
+                    <f:facet name="header">Адрес</f:facet>
+                    #{address}
+                </h:column>
+            </h:dataTable>
+        </h:form>
+    </section>
+
+    <section class="card">
+        <h2>Добавяне на нов офис</h2>
+        <h:form>
+            <div class="field">
+                <h:outputLabel for="newCity" value="Град"/>
+                <h:inputText id="newCity" value="#{order.newCity}" required="true"
+                             requiredMessage="Въведете град." maxlength="255"/>
+                <h:message for="newCity" errorClass="error"/>
+            </div>
+            <div class="field">
+                <h:outputLabel for="newAddress" value="Нов адрес"/>
+                <h:inputText id="newAddress" value="#{order.newAddress}" required="true"
+                             requiredMessage="Въведете адрес." maxlength="255"/>
+                <h:message for="newAddress" errorClass="error"/>
+            </div>
+            <h:commandButton value="Запиши" action="#{order.addOfficeAddress}"/>
+        </h:form>
+    </section>
+</main>
+</h:body>
+</html>

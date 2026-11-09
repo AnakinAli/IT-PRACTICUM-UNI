@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Качване на файлове с прогрес</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        progress { width: 100%; max-width: 500px; height: 24px; margin: 16px 0; }
+        #status, #total_bytes_send { margin: 10px 0; }
+        button, input[type="submit"] { padding: 8px 14px; margin: 8px 4px 0 0; }
+    </style>
+</head>
+<body>
+    <h1>Качване на файлове с прогрес</h1>
+
+    <form id="upload_form" method="post">
+        <label for="file1">Изберете един или повече файлове:</label><br>
+        <input type="file" id="file1" multiple required><br>
+
+        <progress id="progressBar" value="0" max="100"></progress>
+        <div id="total_bytes_send"></div>
+        <div id="status"></div>
+
+        <button id="abortButton" type="button" disabled>Прекрати</button>
+        <input id="submitButton" type="submit" value="Изпрати">
+    </form>
+
+    <p><a href="index.html">Към началната страница</a></p>
+
+    <script>
+        const form = document.getElementById("upload_form");
+        const fileInput = document.getElementById("file1");
+        const progressBar = document.getElementById("progressBar");
+        const bytesElement = document.getElementById("total_bytes_send");
+        const statusElement = document.getElementById("status");
+        const abortButton = document.getElementById("abortButton");
+        const submitButton = document.getElementById("submitButton");
+        let request = null;
+
+        form.addEventListener("submit", submitFiles);
+        abortButton.addEventListener("click", () => {
+            if (request) {
+                request.abort();
+            }
+        });
+
+        function submitFiles(event) {
+            event.preventDefault();
+            const filesArray = fileInput.files;
+            if (filesArray.length === 0) {
+                statusElement.textContent = "Моля, изберете поне един файл.";
+                return;
+            }
+
+            const formData = new FormData();
+            for (const file of filesArray) {
+                formData.append("file_1", file, file.name);
+            }
+
+            request = new XMLHttpRequest();
+            request.upload.addEventListener("progress", progressHandler);
+            // XMLHttpRequest uses the standard 'load' event when the response is received.
+            request.addEventListener("load", completeHandler);
+            request.addEventListener("error", errorHandler);
+            request.addEventListener("abort", abortHandler);
+            request.addEventListener("loadend", finishRequest);
+
+            request.open("POST", "FileServlet");
+            abortButton.disabled = false;
+            submitButton.disabled = true;
+            statusElement.textContent = "Започва качване...";
+            request.send(formData);
+        }
+
+        function progressHandler(event) {
+            if (!event.lengthComputable) {
+                statusElement.textContent = "Качване...";
+                return;
+            }
+
+            bytesElement.textContent = `Качени: ${event.loaded} байта от ${event.total}`;
+            const percent = Math.round((event.loaded / event.total) * 100);
+            progressBar.value = percent;
+            statusElement.textContent = `${percent}% качени ... моля изчакайте!`;
+        }
+
+        function completeHandler(event) {
+            if (event.target.status >= 200 && event.target.status < 400) {
+                progressBar.value = 100;
+                statusElement.textContent = "Файловете са качени успешно.";
+            } else {
+                statusElement.textContent = "Сървърът върна грешка при качването.";
+            }
+        }
+
+        function errorHandler() {
+            statusElement.textContent = "Възникна грешка при качването на файловете.";
+        }
+
+        function abortHandler() {
+            statusElement.textContent = "Качването е прекъснато.";
+            progressBar.value = 0;
+        }
+
+        function finishRequest() {
+            abortButton.disabled = true;
+            submitButton.disabled = false;
+            request = null;
+        }
+    </script>
+</body>
+</html>

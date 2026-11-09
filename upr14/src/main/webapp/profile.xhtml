@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<f:metadata>
+    <f:viewParam name="id" value="#{user.selectedUserId}" required="true"/>
+</f:metadata>
+<h:head>
+    <title>Потребителски профил</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+</h:head>
+<h:body>
+    <main class="card">
+        <h:panelGroup rendered="#{not empty user.selectedUser}">
+            <h1><h:outputText value="#{user.selectedUser.username}"/></h1>
+            <img class="profile-photo" src="#{user.selectedUserPhoto}"
+                 alt="Профилна снимка" width="220" height="220"/>
+            <p><strong>Парола (учебна демонстрация):</strong>
+                <h:outputText value="#{user.selectedUser.password}"/></p>
+        </h:panelGroup>
+        <h:panelGroup rendered="#{empty user.selectedUser}">
+            <h1>Профилът не е намерен.</h1>
+        </h:panelGroup>
+        <p><h:link outcome="viewUsers" value="Назад към всички профили"/></p>
+    </main>
+</h:body>
+</html>

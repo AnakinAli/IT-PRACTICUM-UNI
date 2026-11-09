@@ -1,0 +1,40 @@
+:root {
+    font-family: system-ui, sans-serif;
+    color: #182230;
+    background: #eef2f7;
+}
+
+body { margin: 0; padding: 3rem 1rem; }
+
+.card, .wide-card {
+    max-width: 34rem;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    background: white;
+    box-shadow: 0 12px 30px rgba(25, 45, 70, .12);
+}
+
+.wide-card { max-width: 60rem; }
+form { display: grid; gap: .65rem; margin-bottom: 1.5rem; }
+input { padding: .65rem; }
+
+.button {
+    margin-top: .6rem;
+    padding: .75rem;
+    color: white;
+    border: 0;
+    border-radius: .4rem;
+    background: #2458c6;
+    cursor: pointer;
+}
+
+.users-table { width: 100%; border-collapse: collapse; }
+.users-table th, .users-table td {
+    padding: .8rem;
+    border-bottom: 1px solid #d8e0ea;
+    text-align: left;
+}
+.users-table img, .profile-photo { object-fit: cover; border-radius: 50%; }
+.odd { background: #f8fafc; }
+.messages { color: #b42318; }

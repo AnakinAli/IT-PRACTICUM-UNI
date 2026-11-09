@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генериране на ZIP архив</title>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.get("FileList", function (data) {
+                const filesContainer = $("#files");
+
+                if (!data) {
+                    filesContainer.text("Няма налични файлове.");
+                    return;
+                }
+
+                const filesArr = data.split(",");
+                $.each(filesArr, function (_, fileName) {
+                    const checkbox = $("<input>", {
+                        type: "checkbox",
+                        name: "file",
+                        value: fileName
+                    });
+
+                    filesContainer.append(checkbox, document.createTextNode(" " + fileName), "<br>");
+                });
+            }).fail(function () {
+                $("#files").text("Файловете не могат да бъдат заредени.");
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Генериране на ZIP архив</h1>
+
+    <p><a href="GenereteZipArchive">Свали архива</a></p>
+
+    <h2>Архив от избрани файлове</h2>
+    <form method="get" action="SelectiveZipArchive">
+        <div id="files">Зареждане на файловете...</div>
+        <p><input type="submit" value="Генерирай"></p>
+    </form>
+</body>
+</html>

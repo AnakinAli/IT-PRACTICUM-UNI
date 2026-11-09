@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <meta charset="UTF-8"/>
+    <title>Филтриране на офиси с JSF Ajax</title>
+    <style type="text/css">
+        body { font-family: Arial, sans-serif; margin: 3rem; color: #243044; }
+        .card { max-width: 560px; padding: 2rem; border: 1px solid #ccd3dc; border-radius: 10px; }
+        .city-input { box-sizing: border-box; width: 100%; margin: .5rem 0 1.5rem; padding: .65rem; }
+        .office-list { box-sizing: border-box; height: 130px; overflow-y: auto; width: 100%; border: 1px solid #aaa; padding: .5rem; margin: .5rem 0 1.5rem; }
+        .hint { color: #667085; font-size: .9rem; }
+        .result { display: block; margin-top: 1rem; font-weight: bold; }
+    </style>
+</h:head>
+<h:body>
+    <main class="card">
+        <h1>Избор на офис</h1>
+
+        <h:form id="myForm">
+            <h:outputLabel for="city" value="Въведете град"/>
+            <h:inputText value="#{order.city}" id="city" styleClass="city-input"
+                         autocomplete="off">
+                <f:ajax event="keyup" execute="city" render="offices"
+                        listener="#{order.keyUp}"/>
+            </h:inputText>
+            <div class="hint">Пример: Русе или Русе, Липник</div>
+
+            <h:outputLabel for="offices" value="Изберете офис:"/>
+            <div class="office-list">
+                <h:selectOneRadio id="offices" layout="pageDirection"
+                                  value="#{order.selectedOffice}">
+                    <f:selectItems value="#{order.filteredOffices}"/>
+                </h:selectOneRadio>
+            </div>
+
+            <h:commandButton value="Изпрати" action="#{order.send}"/>
+            <h:outputText value="#{order.resultMessage}" styleClass="result"/>
+        </h:form>
+    </main>
+</h:body>
+</html>

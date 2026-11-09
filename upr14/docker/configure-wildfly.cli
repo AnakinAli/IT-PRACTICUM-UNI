@@ -1,0 +1,6 @@
+embed-server --std-out=echo --server-config=standalone.xml
+
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-class-name=com.mysql.cj.jdbc.Driver)
+/subsystem=datasources/data-source=Upr14DS:add(jndi-name=java:/jdbc/Upr14DS,driver-name=mysql,connection-url="jdbc:mysql://mysql:3306/upr14?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",user-name=upr14,password=upr14,min-pool-size=2,max-pool-size=10,enabled=true,validate-on-match=true,background-validation=false)
+
+stop-embedded-server

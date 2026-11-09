@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <meta charset="UTF-8"/>
+    <title>JSF Ajax събития</title>
+    <style type="text/css">
+        body { font-family: Arial, sans-serif; margin: 3rem; color: #243044; }
+        .card { max-width: 600px; padding: 2rem; border: 1px solid #ccd3dc; border-radius: 10px; }
+        .text-input { box-sizing: border-box; width: 100%; margin: .5rem 0; padding: .65rem; }
+        .office-list { box-sizing: border-box; height: 130px; overflow-y: auto; width: 100%; border: 1px solid #aaa; padding: .5rem; margin: .5rem 0 1.5rem; }
+        .hint { color: #667085; font-size: .9rem; margin-bottom: 1.5rem; }
+        .field { margin: 1.5rem 0; }
+        .error { color: red; display: block; min-height: 1.2rem; margin-top: .25rem; }
+        .result { display: block; margin-top: 1rem; font-weight: bold; }
+    </style>
+    <script type="text/javascript">
+        function onKeyUpEvent(event) {
+            if (event.status == "success") {
+                setOfficesCount();
+            }
+        }
+
+        function setOfficesCount() {
+            let table = document.getElementById("myForm:offices");
+            let results = table ? table.rows.length : 0;
+            let resultsElement = document.getElementById("results");
+
+            resultsElement.innerHTML = "(" + results + ")";
+            resultsElement.style.color = results == 0 ? "red" : "black";
+        }
+
+        function checkUsernameWithRest(event) {
+            if (event.status != "success") {
+                return;
+            }
+
+            let username = document.getElementById("myForm:restUsername").value.trim();
+            let message = document.getElementById("restUsernameStatus");
+
+            if (username.length == 0) {
+                message.style.display = "none";
+                return;
+            }
+
+            fetch("#{request.contextPath}/check-user/" + encodeURIComponent(username), {
+                method: "HEAD"
+            }).then(function (response) {
+                message.style.display = response.status == 200 ? "block" : "none";
+            }).catch(function () {
+                message.style.display = "none";
+            });
+        }
+
+        window.onload = setOfficesCount;
+    </script>
+</h:head>
+<h:body>
+    <main class="card">
+        <h1>Регистрация и избор на офис</h1>
+        <h:form id="myForm">
+            <h:outputLabel for="city" value="Въведете град"/>
+            <h:inputText value="#{order.city}" id="city" styleClass="text-input" autocomplete="off">
+                <f:ajax event="keyup" execute="city" render="offices"
+                        listener="#{order.keyUp}" onevent="onKeyUpEvent"/>
+            </h:inputText>
+            <div class="hint">Пример: Русе или Русе, Липник</div>
+
+            <h:outputLabel for="offices" value="Изберете офис: "/>
+            <span id="results">()</span>
+            <div class="office-list">
+                <h:selectOneRadio id="offices" layout="pageDirection" value="#{order.selectedOffice}">
+                    <f:selectItems value="#{order.filteredOffices}"/>
+                </h:selectOneRadio>
+            </div>
+
+            <div class="field">
+                <h:outputLabel for="restUsername" value="Потребителско име (REST проверка)"/>
+                <h:inputText id="restUsername" value="#{order.restUsername}"
+                             styleClass="text-input" autocomplete="off">
+                    <f:ajax event="keyup" execute="@this" onevent="checkUsernameWithRest"/>
+                </h:inputText>
+                <span id="restUsernameStatus" class="error" style="display: none;">
+                    Потребителското име е заето
+                </span>
+            </div>
+
+            <div class="field">
+                <h:outputLabel for="managedUsername" value="Потребителско име (проверка в order)"/>
+                <h:inputText id="managedUsername" value="#{order.username}"
+                             styleClass="text-input" autocomplete="off">
+                    <f:ajax event="keyup" execute="@this" render="managedUsernameStatus"
+                            listener="#{order.checkUsername}"/>
+                </h:inputText>
+                <h:outputText id="managedUsernameStatus" value="#{order.status}" styleClass="error"/>
+            </div>
+
+            <h:commandButton value="Изпрати" action="#{order.send}"/>
+            <h:outputText value="#{order.resultMessage}" styleClass="result"/>
+        </h:form>
+    </main>
+</h:body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <title>Регистрация</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+</h:head>
+<h:body>
+    <main class="card">
+        <h1>Регистрация</h1>
+        <h:messages globalOnly="true" styleClass="messages"/>
+        <h:form id="registrationForm" enctype="multipart/form-data">
+            <h:outputLabel for="username" value="Потребителско име"/>
+            <h:inputText id="username" value="#{user.username}"
+                         required="true" requiredMessage="Въведете потребителско име."/>
+            <h:outputLabel for="password" value="Парола"/>
+            <h:inputSecret id="password" value="#{user.password}"
+                           required="true" requiredMessage="Въведете парола."/>
+            <h:outputLabel for="photo" value="Профилна снимка"/>
+            <h:inputFile id="photo" value="#{user.photo}" accept="image/*"/>
+            <h:commandButton value="Изпрати" action="#{user.upload}" styleClass="button"/>
+        </h:form>
+        <h:link outcome="viewUsers" value="Вижте всички профили"/>
+    </main>
+</h:body>
+</html>

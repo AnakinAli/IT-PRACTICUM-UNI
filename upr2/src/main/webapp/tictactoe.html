@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Морски шах</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 40px auto; }
+        #board { display: grid; grid-template-columns: repeat(3, 90px); gap: 6px; justify-content: center; }
+        #board button { width: 90px; height: 90px; font-size: 36px; cursor: pointer; }
+        #board button:disabled { cursor: not-allowed; color: #222; }
+        #status { margin: 20px auto; min-height: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Морски шах</h1>
+    <div id="status">Търсене на противник...</div>
+    <div id="board" aria-label="Дъска за морски шах"></div>
+    <p><a href="index.html">Към системата за гласуване</a></p>
+
+    <script>
+        const board = document.getElementById("board");
+        const statusElement = document.getElementById("status");
+        const cells = [];
+        let myTurn = false;
+        let gameActive = false;
+
+        for (let i = 0; i < 9; i++) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "?";
+            button.disabled = true;
+            button.setAttribute("aria-label", `Поле ${i + 1}`);
+            button.addEventListener("click", () => play(i));
+            board.appendChild(button);
+            cells.push(button);
+        }
+
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        const contextPath = location.pathname.substring(0, location.pathname.lastIndexOf("/"));
+        const ws = new WebSocket(`${protocol}//${location.host}${contextPath}/tictactoe`);
+
+        ws.onmessage = (event) => {
+            const parts = event.data.split(":");
+            const command = parts[0];
+            if (command === "waiting") {
+                statusElement.textContent = "Търсене на противник...";
+            } else if (command === "start") {
+                gameActive = true;
+                myTurn = parts[2] === "yourTurn";
+                cells.forEach(cell => cell.textContent = "?");
+                updateBoardState();
+                statusElement.textContent = `Вие сте ${parts[1]}. ${myTurn ? "Вие сте на ход." : "Ход на противника."}`;
+            } else if (command === "move") {
+                cells[Number(parts[1])].textContent = parts[2];
+                myTurn = parts[3] === "yourTurn";
+                updateBoardState();
+                statusElement.textContent = myTurn ? "Вие сте на ход." : "Ход на противника.";
+            } else if (command === "end") {
+                gameActive = false;
+                myTurn = false;
+                updateBoardState();
+                statusElement.textContent = parts.slice(1).join(":");
+            } else if (command === "opponentLeft") {
+                gameActive = false;
+                myTurn = false;
+                updateBoardState();
+                statusElement.textContent = "Противникът напусна играта.";
+            } else if (command === "error") {
+                statusElement.textContent = parts.slice(1).join(":");
+            }
+        };
+
+        ws.onerror = () => statusElement.textContent = "Грешка при WebSocket връзката.";
+        ws.onclose = () => {
+            gameActive = false;
+            myTurn = false;
+            updateBoardState();
+            statusElement.textContent = "Връзката със сървъра е прекъсната.";
+        };
+
+        function play(index) {
+            if (gameActive && myTurn && cells[index].textContent === "?") {
+                ws.send(`move:${index}`);
+            }
+        }
+
+        function updateBoardState() {
+            cells.forEach(cell => cell.disabled = !gameActive || !myTurn || cell.textContent !== "?");
+        }
+    </script>
+</body>
+</html>

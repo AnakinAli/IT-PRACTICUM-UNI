@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Система за гласуване</title>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        button { padding: 10px 16px; margin: 4px; cursor: pointer; }
+        button:disabled { cursor: not-allowed; }
+        #status { margin-top: 20px; padding: 12px; background: #f2f2f2; min-height: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Система за гласуване</h1>
+    <button id="joinButton" type="button" onclick="joinVote()" disabled>Присъедини се към гласуването</button>
+    <button id="yesButton" type="button" onclick="sendVote('yes')" disabled>Yes</button>
+    <button id="noButton" type="button" onclick="sendVote('no')" disabled>No</button>
+
+    <div id="status">Свързване...</div>
+    <h2>Изпращане на файл към сървлет</h2>
+    <form action="FileServlet" method="post" enctype="multipart/form-data">
+        <label for="file_1">Изберете файл</label>
+        <input type="file" id="file_1" name="file_1" required>
+        <input type="submit" value="Upload">
+    </form>
+
+    <p>
+        <a href="uploadWithStatus.html">Качване на няколко файла с прогрес</a> |
+        <a href="tictactoe.html">Към играта „Морски шах“</a>
+    </p>
+
+    <script>
+        const statusElement = document.getElementById("status");
+        const joinButton = document.getElementById("joinButton");
+        const yesButton = document.getElementById("yesButton");
+        const noButton = document.getElementById("noButton");
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        const contextPath = location.pathname.substring(0, location.pathname.lastIndexOf("/"));
+        const ws = new WebSocket(`${protocol}//${location.host}${contextPath}/vote`);
+
+        ws.onopen = () => {
+            statusElement.textContent = "Свързан! Натиснете бутона за присъединяване.";
+            joinButton.disabled = false;
+        };
+
+        ws.onmessage = (event) => {
+            const message = event.data;
+            if (message === "userReady") {
+                statusElement.textContent = "Готов сте. Изчакват се останалите участници...";
+                joinButton.disabled = true;
+            } else if (message === "voteInAction") {
+                statusElement.textContent = "В момента вече тече гласуване. Изчакайте края му.";
+                joinButton.disabled = true;
+            } else if (message === "startVote") {
+                statusElement.textContent = "Гласуването започна. Изберете Yes или No.";
+                joinButton.disabled = true;
+                yesButton.disabled = false;
+                noButton.disabled = false;
+            } else if (message === "voteAccepted") {
+                statusElement.textContent = "Гласът ви е приет. Изчакват се останалите участници...";
+                yesButton.disabled = true;
+                noButton.disabled = true;
+            } else if (message.startsWith("result:")) {
+                statusElement.textContent = message.substring("result:".length);
+                joinButton.disabled = false;
+                yesButton.disabled = true;
+                noButton.disabled = true;
+            } else {
+                statusElement.textContent = message;
+            }
+        };
+
+        ws.onerror = () => statusElement.textContent = "Грешка при WebSocket връзката.";
+        ws.onclose = () => {
+            statusElement.textContent = "Връзката със сървъра е прекъсната.";
+            joinButton.disabled = true;
+            yesButton.disabled = true;
+            noButton.disabled = true;
+        };
+
+        function joinVote() {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send("userReady");
+                joinButton.disabled = true;
+            }
+        }
+
+        function sendVote(vote) {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`vote:${vote}`);
+                yesButton.disabled = true;
+                noButton.disabled = true;
+            }
+        }
+    </script>
+</body>
+</html>

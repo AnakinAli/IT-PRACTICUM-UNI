@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <Resource id="MyDataSource" type="DataSource">
+        JdbcDriver com.mysql.jdbc.Driver
+        JdbcUrl jdbc:mysql://mysql:3306/upr12?useUnicode=yes&amp;characterEncoding=UTF-8
+        UserName upr12
+        Password upr12pass
+        JtaManaged true
+    </Resource>
+</resources>

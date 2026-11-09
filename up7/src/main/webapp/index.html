@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Въпросник</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Arial, sans-serif; background: #eef2f7; color: #1f2937; }
+        main { width: min(90%, 34rem); padding: 2rem; border-radius: .75rem; background: white; box-shadow: 0 .5rem 2rem rgba(31, 41, 55, .12); }
+        #question { min-height: 1.5rem; margin-bottom: 1rem; font-size: 1.2rem; font-weight: 600; }
+        input[type="text"] { box-sizing: border-box; width: 100%; margin-bottom: 1rem; padding: .75rem; border: 1px solid #9ca3af; border-radius: .4rem; font: inherit; }
+        button { padding: .7rem 1.2rem; border: 0; border-radius: .4rem; background: #2563eb; color: white; font: inherit; cursor: pointer; }
+    </style>
+</head>
+<body onload="onPageLoad()">
+<main>
+    <h1>Въпросник</h1>
+    <form method="post" action="Quiz">
+        <div id="question" aria-live="polite"></div>
+        <label id="answerLabel" for="answer">Вашият отговор</label>
+        <input id="answer" name="answer" type="text" required autocomplete="off">
+        <input id="completed" name="completed" type="hidden" value="false">
+        <button id="submitButton" type="submit">Продължи</button>
+    </form>
+</main>
+<script>
+    function onPageLoad() {
+        fetch('Quiz')
+            .then(function (response) {
+                if (response.status === 200) {
+                    response.text().then(function (data) {
+                        document.getElementById('question').textContent = data;
+                        document.getElementById('answer').focus();
+                    });
+                }
+                if (response.status === 404) {
+                    document.getElementById('answer').style.display = 'none';
+                    document.getElementById('answer').required = false;
+                    document.getElementById('answerLabel').style.display = 'none';
+                    document.getElementById('question').textContent =
+                        'Всички въпроси са отговорени. Натиснете бутона, за да запазите отговорите.';
+                    document.getElementById('completed').value = 'true';
+                    document.getElementById('submitButton').textContent = 'Запази';
+                }
+                if (response.status !== 200 && response.status !== 404) {
+                    document.getElementById('question').textContent = 'Възникна грешка при зареждането на въпроса.';
+                }
+                console.log('Status Code: ' + response.status);
+            })
+            .catch(function (err) {
+                console.log('Fetch Error: ', err);
+                document.getElementById('question').textContent = 'Сървърът не е достъпен.';
+            });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Въпросник</title>
+  <style>
+    body { font-family: sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+    form { display: flex; gap: .5rem; }
+    input { flex: 1; padding: .6rem; }
+    button { padding: .6rem 1rem; cursor: pointer; }
+    #reset { margin-top: 1.5rem; }
+    #error { color: #a00; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Въпросник</h1>
+    <p id="progress"></p>
+    <h2 id="question">Зареждане…</h2>
+    <form id="answer-form">
+      <input id="answer" name="answer" autocomplete="off" required>
+      <button type="submit">Отговори</button>
+    </form>
+    <p id="error" role="alert"></p>
+    <button id="reset" type="button">Започни отначало</button>
+  </main>
+
+  <script>
+    const form = document.getElementById('answer-form');
+    const answer = document.getElementById('answer');
+    const question = document.getElementById('question');
+    const progress = document.getElementById('progress');
+    const error = document.getElementById('error');
+
+    function render(state) {
+      if (state.finished) {
+        question.textContent = 'Готово! Благодаря за отговорите.';
+        progress.textContent = `Отговорени въпроси: ${state.questionCount}`;
+        form.hidden = true;
+      } else {
+        question.textContent = state.question;
+        progress.textContent = `Въпрос ${state.currentNumber} от ${state.questionCount}`;
+        form.hidden = false;
+        answer.focus();
+      }
+    }
+
+    async function loadQuiz() {
+      try {
+        const response = await fetch('Quiz');
+        if (!response.ok) throw new Error('Въпросникът не може да бъде зареден.');
+        render(await response.json());
+      } catch (e) {
+        error.textContent = e.message;
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      error.textContent = '';
+      try {
+        const body = new URLSearchParams({ answer: answer.value });
+        const response = await fetch('Quiz', { method: 'POST', body });
+        if (!response.ok) throw new Error('Отговорът не може да бъде записан.');
+        answer.value = '';
+        render(await response.json());
+      } catch (e) {
+        error.textContent = e.message;
+      }
+    });
+
+    document.getElementById('reset').addEventListener('click', async () => {
+      await fetch('Quiz?resetQuiz=true');
+      location.reload();
+    });
+
+    loadQuiz();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: upr12-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: upr12
+      MYSQL_USER: upr12
+      MYSQL_PASSWORD: upr12pass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  maven:
+    image: maven:3.9-eclipse-temurin-11
+    profiles: ["tools"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven_cache:/root/.m2
+    command: mvn test
+
+  server:
+    image: maven:3.9-eclipse-temurin-11
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven_cache:/root/.m2
+    command: mvn -DskipTests package tomee:run
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  maven_cache:
